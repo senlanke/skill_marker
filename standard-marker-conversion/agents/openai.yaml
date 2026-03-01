@@ -1,0 +1,3 @@
+interface:
+  display_name: "Standard Marker Conversion"
+  short_description: "Use standard marker-pdf for PDF->Markdown"
