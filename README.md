@@ -12,6 +12,7 @@ Main files:
 
 - `standard-marker-conversion/SKILL.md`
 - `standard-marker-conversion/scripts/marker-standard.sh`
+- `standard-marker-conversion/scripts/marker-paper-workflow.sh`
 - `standard-marker-conversion/agents/openai.yaml`
 
 ## Prerequisites
@@ -79,6 +80,21 @@ cp -r standard-marker-conversion "$CLAUDE_SKILLS_DIR/"
 ## Use the Skill
 
 In prompts, explicitly ask to use `standard-marker-conversion`.
+
+Paper workflow (recommended for single paper):
+
+```bash
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/marker-paper-workflow.sh" \
+  --input "/path/to/paper.pdf" \
+  --output-dir "/path/to/output"
+```
+
+This workflow enforces:
+- markdown conversion with marker
+- filename as `作者—年份—论文名.md`
+- images referenced in markdown
+- deletion of unreferenced extra images
+- final format validation
 
 Run script directly (Codex install path):
 

@@ -8,6 +8,33 @@ description: Use when converting one or more PDFs to Markdown with standard mark
 ## Overview
 Run standard `marker` / `marker_single` with the full model pipeline. Do not use monkey-patched or lightweight fallbacks when this skill is selected.
 
+## Paper Workflow (Default)
+For paper conversion tasks, use this required workflow:
+1. Convert PDF to markdown with standard `marker_single` (image extraction enabled).
+2. Rename markdown to `作者—年份—论文名.md`.
+   - Priority: PDF metadata (`Author`, `Title`, creation/modification year) -> filename parsing -> fallback placeholders.
+3. Ensure images are referenced inside markdown.
+4. Delete extra saved images that are not referenced in markdown.
+5. Validate final format (filename pattern + non-empty markdown + image reference consistency).
+
+Use the workflow script:
+
+Codex:
+
+```bash
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/marker-paper-workflow.sh" \
+  --input "/path/to/paper.pdf" \
+  --output-dir "/path/to/output"
+```
+
+Claude Code:
+
+```bash
+"${CLAUDE_HOME:-$HOME/.claude}/skills/standard-marker-conversion/scripts/marker-paper-workflow.sh" \
+  --input "/path/to/paper.pdf" \
+  --output-dir "/path/to/output"
+```
+
 ## Prepare Environment and Models
 Run setup once to install packages and pre-download required models.
 
@@ -58,6 +85,8 @@ Batch convert a folder:
   --input "/path/to/pdf_folder" \
   --output-dir "/path/to/output"
 ```
+
+For single-paper formatting and validation requirements, prefer `marker-paper-workflow.sh` over `marker-standard.sh`.
 
 ## Standard Commands
 Single PDF:

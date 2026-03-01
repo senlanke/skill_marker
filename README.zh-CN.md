@@ -12,6 +12,7 @@
 
 - `standard-marker-conversion/SKILL.md`
 - `standard-marker-conversion/scripts/marker-standard.sh`
+- `standard-marker-conversion/scripts/marker-paper-workflow.sh`
 - `standard-marker-conversion/agents/openai.yaml`
 
 ## 前置条件
@@ -79,6 +80,21 @@ cp -r standard-marker-conversion "$CLAUDE_SKILLS_DIR/"
 ## 使用 Skill
 
 在提示词中明确要求使用 `standard-marker-conversion`。
+
+论文工作流（单篇论文推荐）：
+
+```bash
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/marker-paper-workflow.sh" \
+  --input "/path/to/paper.pdf" \
+  --output-dir "/path/to/output"
+```
+
+该工作流会强制执行：
+- marker 转 markdown
+- 文件名为 `作者—年份—论文名.md`
+- 图片必须在 markdown 中被引用
+- 删除未引用的多余图片
+- 最终格式校验
 
 直接运行脚本（Codex 安装路径）：
 
