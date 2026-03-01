@@ -22,6 +22,28 @@
 - 首次运行可访问网络（下载模型）
 - 标准 marker 流程建议至少 8 GB 内存，更推荐 16 GB
 
+## 安装 marker-pdf
+
+创建并准备默认 `ke` 环境：
+
+```bash
+conda create -n ke python=3.10 -y
+conda run -n ke python -m pip install -U pip
+conda run -n ke python -m pip install marker-pdf psutil
+```
+
+验证安装：
+
+```bash
+conda run -n ke marker_single --help
+```
+
+可选（推荐）设置可写模型缓存目录：
+
+```bash
+mkdir -p /mnt/e/.cache/datalab/models
+```
+
 ## 在其他电脑安装
 
 1. 克隆仓库：

@@ -22,6 +22,28 @@ Main files:
 - Network access on first run (model download)
 - Enough memory for standard marker pipeline (8 GB+ recommended, 16 GB preferred)
 
+## Install marker-pdf
+
+Create and prepare the default `ke` environment:
+
+```bash
+conda create -n ke python=3.10 -y
+conda run -n ke python -m pip install -U pip
+conda run -n ke python -m pip install marker-pdf psutil
+```
+
+Verify installation:
+
+```bash
+conda run -n ke marker_single --help
+```
+
+Optional (recommended) writable model cache path:
+
+```bash
+mkdir -p /mnt/e/.cache/datalab/models
+```
+
 ## Install on Another Machine
 
 1. Clone this repository:
