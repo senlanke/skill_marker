@@ -43,6 +43,12 @@ Useful options:
 bash standard-marker-conversion/scripts/setup-marker.sh --help
 ```
 
+Offline validation (no create/install/download):
+
+```bash
+bash standard-marker-conversion/scripts/setup-marker.sh --offline
+```
+
 ## Install This Skill (Codex and Claude Code)
 
 1. Clone this repository:

@@ -11,6 +11,7 @@ Options:
   --python-version <version>  Python version for new env (default: 3.10)
   --cache-dir <path>          Model cache directory
   --font-path <path>          Font path used by marker
+  --offline                   Offline validation mode (no create/install/download)
   --skip-conda-create         Do not create conda env if missing
   --skip-model-download       Skip model pre-download
   --skip-font-download        Skip font pre-download
@@ -36,6 +37,7 @@ font_path="${MARKER_FONT_PATH:-${cache_dir}/fonts/GoNotoCurrent-Regular.ttf}"
 skip_conda_create=0
 skip_model_download=0
 skip_font_download=0
+offline=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -54,6 +56,10 @@ while [[ $# -gt 0 ]]; do
     --font-path)
       font_path="${2:-}"
       shift 2
+      ;;
+    --offline)
+      offline=1
+      shift
       ;;
     --skip-conda-create)
       skip_conda_create=1
@@ -84,7 +90,15 @@ if ! command -v conda >/dev/null 2>&1; then
   exit 127
 fi
 
-mkdir -p "$cache_dir" "$(dirname "$font_path")"
+if [[ $offline -eq 1 ]]; then
+  skip_conda_create=1
+  skip_model_download=1
+  skip_font_download=1
+fi
+
+if [[ $offline -eq 0 ]]; then
+  mkdir -p "$cache_dir" "$(dirname "$font_path")"
+fi
 
 if conda run -n "$conda_env" python -V >/dev/null 2>&1; then
   echo "[INFO] Conda env exists: $conda_env"
@@ -97,9 +111,13 @@ else
   conda create -n "$conda_env" "python=$python_version" -y
 fi
 
-echo "[INFO] Installing marker dependencies in env '$conda_env'"
-conda run -n "$conda_env" python -m pip install -U pip
-conda run -n "$conda_env" python -m pip install marker-pdf psutil
+if [[ $offline -eq 0 ]]; then
+  echo "[INFO] Installing marker dependencies in env '$conda_env'"
+  conda run -n "$conda_env" python -m pip install -U pip
+  conda run -n "$conda_env" python -m pip install marker-pdf psutil
+else
+  echo "[INFO] Offline mode: skip dependency install"
+fi
 
 if [[ $skip_font_download -eq 0 ]]; then
   echo "[INFO] Downloading marker font to: $font_path"
@@ -147,6 +165,50 @@ print("[INFO] Model pre-download complete.")
 PY
 else
   echo "[INFO] Skipping model download (--skip-model-download)"
+fi
+
+if [[ $offline -eq 1 ]]; then
+  echo "[INFO] Offline mode: validating local font and model cache completeness"
+  if [[ ! -f "$font_path" ]]; then
+    echo "[ERROR] Font file not found: $font_path" >&2
+    exit 2
+  fi
+
+  conda run -n "$conda_env" env MODEL_CACHE_DIR="$cache_dir" python - <<'PY'
+import os
+import sys
+from surya.settings import settings
+from surya.common.s3 import check_manifest
+
+checkpoints = [
+    settings.LAYOUT_MODEL_CHECKPOINT,
+    settings.RECOGNITION_MODEL_CHECKPOINT,
+    settings.DETECTOR_MODEL_CHECKPOINT,
+    settings.OCR_ERROR_MODEL_CHECKPOINT,
+    settings.TABLE_REC_MODEL_CHECKPOINT,
+]
+
+missing = []
+seen = set()
+for cp in checkpoints:
+    if not cp.startswith("s3://"):
+        continue
+    rel = cp[len("s3://") :]
+    if rel in seen:
+        continue
+    seen.add(rel)
+    local_path = os.path.join(settings.MODEL_CACHE_DIR, rel)
+    if not check_manifest(local_path):
+        missing.append((cp, local_path))
+
+if missing:
+    print("[ERROR] Missing or incomplete model directories:")
+    for cp, local_path in missing:
+        print(f"  - {cp} -> {local_path}")
+    sys.exit(2)
+
+print("[INFO] Offline model cache validation passed.")
+PY
 fi
 
 echo "[INFO] Verifying marker command"

@@ -43,6 +43,12 @@ bash standard-marker-conversion/scripts/setup-marker.sh
 bash standard-marker-conversion/scripts/setup-marker.sh --help
 ```
 
+离线校验（不创建环境、不安装、不下载）：
+
+```bash
+bash standard-marker-conversion/scripts/setup-marker.sh --offline
+```
+
 ## 安装 Skill（Codex 与 Claude Code）
 
 1. 克隆仓库：

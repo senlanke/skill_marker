@@ -27,6 +27,7 @@ The setup script supports:
 - `MARKER_CONDA_ENV` (fallback: `ke`)
 - `MARKER_MODEL_CACHE_DIR` (fallback: `${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models`)
 - `MARKER_FONT_PATH` (fallback: `<cache-dir>/fonts/GoNotoCurrent-Regular.ttf`)
+- `--offline` (no create/install/download; only validate local readiness)
 
 ## Quick Start
 Use the bundled script from your installed skill directory.
