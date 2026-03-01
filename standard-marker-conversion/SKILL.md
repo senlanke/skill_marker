@@ -1,6 +1,6 @@
 ---
 name: standard-marker-conversion
-description: Use when converting one or more PDFs to Markdown with standard marker-pdf (full model pipeline, not lightweight fallback), especially in the ke conda environment where cache path, model download, and OOM/proxy/permission troubleshooting are needed.
+description: Use when converting one or more PDFs to Markdown with standard marker-pdf (full model pipeline, not lightweight fallback), including setup and troubleshooting for conda env selection, model cache path, model download, and OOM/proxy/permission issues.
 ---
 
 # Standard Marker Conversion
@@ -8,11 +8,42 @@ description: Use when converting one or more PDFs to Markdown with standard mark
 ## Overview
 Run standard `marker` / `marker_single` with the full model pipeline. Do not use monkey-patched or lightweight fallbacks when this skill is selected.
 
-## Quick Start
-Use the bundled script for the default standard flow:
+## Prepare Environment and Models
+Run setup once to install packages and pre-download required models.
+
+Codex:
 
 ```bash
-/home/kesl/.codex/skills/standard-marker-conversion/scripts/marker-standard.sh \
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/setup-marker.sh"
+```
+
+Claude Code:
+
+```bash
+"${CLAUDE_HOME:-$HOME/.claude}/skills/standard-marker-conversion/scripts/setup-marker.sh"
+```
+
+The setup script supports:
+- `MARKER_CONDA_ENV` (fallback: `ke`)
+- `MARKER_MODEL_CACHE_DIR` (fallback: `${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models`)
+- `MARKER_FONT_PATH` (fallback: `<cache-dir>/fonts/GoNotoCurrent-Regular.ttf`)
+
+## Quick Start
+Use the bundled script from your installed skill directory.
+
+Codex:
+
+```bash
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/marker-standard.sh" \
+  --mode single \
+  --input "/path/to/file.pdf" \
+  --output-dir "/path/to/output"
+```
+
+Claude Code:
+
+```bash
+"${CLAUDE_HOME:-$HOME/.claude}/skills/standard-marker-conversion/scripts/marker-standard.sh" \
   --mode single \
   --input "/path/to/file.pdf" \
   --output-dir "/path/to/output"
@@ -21,7 +52,7 @@ Use the bundled script for the default standard flow:
 Batch convert a folder:
 
 ```bash
-/home/kesl/.codex/skills/standard-marker-conversion/scripts/marker-standard.sh \
+"${CODEX_HOME:-$HOME/.codex}/skills/standard-marker-conversion/scripts/marker-standard.sh" \
   --mode batch \
   --input "/path/to/pdf_folder" \
   --output-dir "/path/to/output"
@@ -31,7 +62,10 @@ Batch convert a folder:
 Single PDF:
 
 ```bash
-conda run -n ke env MODEL_CACHE_DIR=/mnt/e/.cache/datalab/models \
+CONDA_ENV="${MARKER_CONDA_ENV:-ke}"
+MODEL_CACHE_DIR="${MARKER_MODEL_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models}"
+mkdir -p "$MODEL_CACHE_DIR"
+conda run -n "$CONDA_ENV" env MODEL_CACHE_DIR="$MODEL_CACHE_DIR" \
   marker_single "/path/to/file.pdf" \
   --output_dir "/path/to/output" \
   --output_format markdown \
@@ -41,7 +75,10 @@ conda run -n ke env MODEL_CACHE_DIR=/mnt/e/.cache/datalab/models \
 Folder batch:
 
 ```bash
-conda run -n ke env MODEL_CACHE_DIR=/mnt/e/.cache/datalab/models \
+CONDA_ENV="${MARKER_CONDA_ENV:-ke}"
+MODEL_CACHE_DIR="${MARKER_MODEL_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models}"
+mkdir -p "$MODEL_CACHE_DIR"
+conda run -n "$CONDA_ENV" env MODEL_CACHE_DIR="$MODEL_CACHE_DIR" \
   marker "/path/to/pdf_folder" \
   --output_dir "/path/to/output" \
   --output_format markdown \
@@ -50,9 +87,10 @@ conda run -n ke env MODEL_CACHE_DIR=/mnt/e/.cache/datalab/models \
 ```
 
 ## Preflight Checklist
-- Ensure `conda` is available and environment `ke` exists.
-- Ensure `marker-pdf` is installed in `ke`.
-- Ensure model cache path is writable. Default: `/mnt/e/.cache/datalab/models`.
+- Ensure `conda` is available and the target environment exists (`MARKER_CONDA_ENV`, fallback `ke`).
+- Ensure `marker-pdf` is installed in the selected environment.
+- Ensure model cache path is writable (`MARKER_MODEL_CACHE_DIR`, fallback `${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models`).
+- Ensure marker font path is writable (`MARKER_FONT_PATH`).
 - Ensure network access for first-run model download.
 - Prefer at least 8 GB RAM (16 GB recommended for stability on larger PDFs).
 
@@ -76,7 +114,7 @@ sed -n '1,30p' "/path/to/output/file.md"
 
 - `PermissionError` on cache/font paths:
   - Root cause: non-writable default directories.
-  - Actions: set `MODEL_CACHE_DIR` to a writable path (for example `/mnt/e/.cache/datalab/models`).
+  - Actions: set `MARKER_MODEL_CACHE_DIR` (or `MODEL_CACHE_DIR` for direct command runs) to a writable path.
 
 - `ProxyError` / download failures from `models.datalab.to`:
   - Root cause: invalid proxy or blocked network.

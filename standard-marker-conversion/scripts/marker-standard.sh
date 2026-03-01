@@ -9,14 +9,22 @@ Usage:
 Examples:
   marker-standard.sh --mode single --input "/data/a.pdf" --output-dir "/data/out"
   marker-standard.sh --mode batch --input "/data/pdfs" --output-dir "/data/out" -- --max_files 20
+
+Environment defaults:
+  MARKER_CONDA_ENV       Default conda env name (fallback: ke)
+  MARKER_MODEL_CACHE_DIR Default model cache dir
+                         (fallback: ${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models)
+  MARKER_FONT_PATH       Font file path for marker
+                         (fallback: <cache-dir>/fonts/GoNotoCurrent-Regular.ttf)
 USAGE
 }
 
 mode=""
 input=""
 output_dir=""
-cache_dir="/mnt/e/.cache/datalab/models"
-conda_env="ke"
+cache_dir="${MARKER_MODEL_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/datalab/models}"
+conda_env="${MARKER_CONDA_ENV:-ke}"
+font_path="${MARKER_FONT_PATH:-${cache_dir}/fonts/GoNotoCurrent-Regular.ttf}"
 extra_args=()
 
 while [[ $# -gt 0 ]]; do
@@ -78,14 +86,16 @@ if [[ ! -e "$input" ]]; then
   exit 2
 fi
 
-mkdir -p "$output_dir" "$cache_dir"
+mkdir -p "$output_dir" "$cache_dir" "$(dirname "$font_path")"
 
-mem_kb=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-if [[ -n "$mem_kb" ]] && (( mem_kb < 8000000 )); then
-  echo "[WARN] Total memory < 8GB; standard marker may be unstable on large PDFs." >&2
+if [[ -r /proc/meminfo ]]; then
+  mem_kb=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+  if [[ -n "$mem_kb" ]] && (( mem_kb < 8000000 )); then
+    echo "[WARN] Total memory < 8GB; standard marker may be unstable on large PDFs." >&2
+  fi
 fi
 
-base_cmd=(conda run -n "$conda_env" env MODEL_CACHE_DIR="$cache_dir")
+base_cmd=(conda run -n "$conda_env" env MODEL_CACHE_DIR="$cache_dir" FONT_PATH="$font_path")
 
 if [[ "$mode" == "single" ]]; then
   cmd=("${base_cmd[@]}" marker_single "$input" --output_dir "$output_dir" --output_format markdown --disable_multiprocessing)
