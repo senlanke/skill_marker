@@ -1,5 +1,7 @@
 # skill_marker
 
+English | [简体中文](README.zh-CN.md)
+
 `skill_marker` provides a Codex skill for standard `marker-pdf` conversion.
 
 ## Included Skill
